@@ -5,12 +5,19 @@ A Helm chart for deploying [Python Matter Server](https://github.com/matter-js/p
 This Chart is inspired by the great work of the [Open Home Foundation Matter community](https://github.com/matter-js/python-matter-server) but is not part of the project and independently maintained.
 There is no guarantee of stability and you're using it on your own risk!
 
+
 ## Prerequisites
 
-- Kubernetes 1.19+
+- Kubernetes 1.19+ 
 - Helm 3.0+
 - IPv6 enabled on cluster nodes
 - Host network access (required for Matter mDNS)
+
+## Tested
+
+- Raspberry Pi4
+- [K0s](https://k0sproject.io/) - v1.33
+- [HomeAssitant](https://www.home-assistant.io/) - 2025.12.3
 
 ## Installation
 
@@ -48,12 +55,17 @@ helm install matter-server oci://ghcr.io/foexle/matter-server \
 To connect to the Matter Server:
 
   1. Find the node IP where the pod is running:
-    ```bash
+    
     kubectl get pods -l "app.kubernetes.io/name=matter-server" -o wide
-    ```
+    
 
   2. Connect via WebSocket:
-     ws://<NODE_IP>:{{ add here .Values.matterServer.port }}/ws
+   
+    ws://<NODE_IP>:{{ add here .Values.matterServer.port }}/ws
+  
+
+
+When you run on RaspberryPI or on another single device, you can use ```localhost``` instead if an IP address.
 
 
 For Home Assistant integration:
