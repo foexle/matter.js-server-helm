@@ -1,0 +1,25 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Matter Server is being deployed with the following configuration:
+
+{{- if .Values.hostNetwork }}
+  Host Network: ENABLED (required for Matter mDNS/multicast)
+{{- end }}
+
+To connect to the Matter Server:
+
+{{- if .Values.hostNetwork }}
+  1. Find the node IP where the pod is running:
+     kubectl get pods -l "app.kubernetes.io/name={{ include "matter-server.name" . }}" -o wide
+
+  2. Connect via WebSocket:
+     ws://<NODE_IP>:{{ .Values.matterServer.port }}/ws
+{{- end }}
+
+For Home Assistant integration:
+  - Add the Matter integration
+  - Use the WebSocket URL above as the server address
+
+IMPORTANT NOTES:
+  - Matter requires IPv6 to be enabled on your cluster nodes
+  - For Thread support, ensure you have a Thread Border Router

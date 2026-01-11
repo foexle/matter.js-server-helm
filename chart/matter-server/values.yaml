@@ -1,0 +1,87 @@
+# Default values for matter-server
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/matter-js/python-matter-server
+  tag: stable
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Matter Server configuration
+matterServer:
+  # Storage path inside the container
+  storagePath: /data
+  # WebSocket port
+  port: 5580
+  # PAA root certificate directory (optional)
+  paaRootCertDir: ""
+  # Bluetooth adapter index (set to 0 to enable, -1 to disable)
+  bluetoothAdapter: 0
+  # Additional command line arguments
+  extraArgs: []
+
+# Host networking is REQUIRED for Matter (mDNS/multicast)
+hostNetwork: true
+
+# D-Bus is required for Bluetooth functionality
+dbus:
+  enabled: true
+  hostPath: /run/dbus
+
+# Security context
+securityContext:
+  # Set to true if you need Bluetooth or USB device access
+  privileged: false
+
+# AppArmor must be disabled for D-Bus/Bluetooth access
+appArmorProfile: unconfined
+
+# Persistence configuration
+persistence:
+  enabled: true
+  # Use existing PVC
+  existingClaim: ""
+  # Storage class (leave empty for default)
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 4Gi
+  # For single-node clusters, you can use hostPath instead
+  useHostPath: true
+  hostPath: /opt/matter-server/data
+
+# Node selection - important for hardware access (Bluetooth, Thread)
+nodeSelector: {}
+#  kubernetes.io/hostname: my-node
+
+tolerations: []
+
+affinity: {}
+
+# Resource limits
+resources: {}
+#  limits:
+#    cpu: 500m
+#    memory: 512Mi
+#  requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+# Pod annotations
+podAnnotations: {}
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Optional: USB device passthrough for Thread/Bluetooth dongles
+usbDevices: []
+#  - hostPath: /dev/ttyUSB0
+#    containerPath: /dev/ttyUSB0
+#  - hostPath: /dev/ttyACM0
+#    containerPath: /dev/ttyACM0

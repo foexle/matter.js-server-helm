@@ -1,0 +1,14 @@
+apiVersion: v2
+name: matter-server
+description: A Helm chart for deploying matter.js based Server on Kubernetes
+type: application
+version: 0.1.0
+appVersion: "stable"
+keywords:
+  - matter
+  - home-assistant
+  - smart-home
+  - iot
+home: https://github.com/matter-js/python-matter-server
+sources:
+  - https://github.com/matter-js/python-matter-server

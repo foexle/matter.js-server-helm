@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "matter-server.fullname" . }}
+  labels:
+    {{- include "matter-server.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "matter-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- if .Values.appArmorProfile }}
+        container.apparmor.security.beta.kubernetes.io/{{ .Chart.Name }}: {{ .Values.appArmorProfile }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "matter-server.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "matter-server.serviceAccountName" . }}
+      hostNetwork: {{ .Values.hostNetwork }}
+      {{- if .Values.hostNetwork }}
+      dnsPolicy: ClusterHostFirstWithHostNet
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --storage-path
+            - {{ .Values.matterServer.storagePath }}
+            {{- if .Values.matterServer.paaRootCertDir }}
+            - --paa-root-cert-dir
+            - {{ .Values.matterServer.paaRootCertDir }}
+            {{- end }}
+            {{- if ge (int .Values.matterServer.bluetoothAdapter) 0 }}
+            - --bluetooth-adapter
+            - {{ .Values.matterServer.bluetoothAdapter | quote }}
+            {{- end }}
+            {{- range .Values.matterServer.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          ports:
+            - name: websocket
+              containerPort: {{ .Values.matterServer.port }}
+              protocol: TCP
+          {{- if .Values.securityContext.privileged }}
+          securityContext:
+            privileged: true
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.matterServer.storagePath }}
+            {{- if .Values.dbus.enabled }}
+            - name: dbus
+              mountPath: /run/dbus
+              readOnly: true
+            {{- end }}
+            {{- range .Values.usbDevices }}
+            - name: usb-{{ . | base | replace "." "-" }}
+              mountPath: {{ .containerPath }}
+            {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          {{- if .Values.persistence.useHostPath }}
+          hostPath:
+            path: {{ .Values.persistence.hostPath }}
+            type: DirectoryOrCreate
+          {{- else }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "matter-server.fullname" .) }}
+          {{- end }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if .Values.dbus.enabled }}
+        - name: dbus
+          hostPath:
+            path: {{ .Values.dbus.hostPath }}
+            type: Directory
+        {{- end }}
+        {{- range .Values.usbDevices }}
+        - name: usb-{{ .hostPath | base | replace "." "-" }}
+          hostPath:
+            path: {{ .hostPath }}
+            type: CharDevice
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
