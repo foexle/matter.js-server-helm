@@ -30,7 +30,7 @@ spec:
       serviceAccountName: {{ include "matter-server.serviceAccountName" . }}
       hostNetwork: {{ .Values.hostNetwork }}
       {{- if .Values.hostNetwork }}
-      dnsPolicy: ClusterHostFirstWithHostNet
+      dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
       containers:
         - name: {{ .Chart.Name }}
