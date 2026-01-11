@@ -25,9 +25,9 @@ jobs:
         uses: appany/helm-oci-chart-releaser@v0.5.0
         with:
           name: matter-server
-          repository: foexle/matter.js-server-helm
+          repository: foexle/matter-server
           path: chart/matter-server
-          tag: latest
+          tag: ${{ env.VERSION }}
           registry: ghcr.io
           registry_username: ${{ github.actor }}
           registry_password: ${{ secrets.GITHUB_TOKEN }}
